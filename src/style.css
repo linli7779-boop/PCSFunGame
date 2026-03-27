@@ -137,6 +137,11 @@ body {
   flex-direction: column;
   gap: 12px;
   min-height: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .game-buttons {
@@ -188,20 +193,23 @@ body {
   flex-direction: column;
 }
 
-.stage-top {
+.selector-panel {
   padding: 12px 14px;
+  border-radius: 14px;
+  background: transparent;
+  border: none;
 }
 
 .stage-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .dropdown-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* Keep dropdowns inline; they can wrap naturally if needed. */
@@ -367,6 +375,11 @@ canvas {
   color: var(--text);
 }
 
+.modal .subtle {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
 .modal .close {
   margin-top: 12px;
   width: 100%;
@@ -374,7 +387,7 @@ canvas {
   border-radius: 14px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: rgba(255, 255, 255, 0.7);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 900;
   cursor: pointer;
 }

@@ -134,14 +134,12 @@ export function initApp() {
   gameButtons.appendChild(firstGradeBtn);
 
   left.appendChild(gameButtons);
-  left.appendChild(aboutBtn);
-  left.appendChild(donationLink);
 
   const stageTop = document.createElement("div");
-  stageTop.className = "stage-top";
+  stageTop.className = "selector-panel";
   const stageTitle = document.createElement("div");
   stageTitle.className = "stage-title";
-  stageTitle.textContent = "Pick a course, then pick a lesson.";
+  stageTitle.textContent = "Choose Unit, Lesson, and Section";
   stageTop.appendChild(stageTitle);
 
   const dropdownRow = document.createElement("div");
@@ -171,7 +169,9 @@ export function initApp() {
     "Touch or click the correct word(s) when you hear the hint.";
   stageTop.appendChild(helper);
 
-  center.appendChild(stageTop);
+  left.appendChild(stageTop);
+  left.appendChild(aboutBtn);
+  left.appendChild(donationLink);
 
   const canvasWrap = document.createElement("div");
   canvasWrap.className = "canvas-wrap";
@@ -780,8 +780,6 @@ export function initApp() {
     resetAll();
 
     stageTitle.textContent = "Kindergarten 学前班: Units → Lessons → Words/Rhythm";
-    dropdownRow.style.gridTemplateColumns =
-      "repeat(3, minmax(0, 1fr))";
 
     unitSelect.value = "";
     lessonSelect.value = "";
@@ -807,8 +805,6 @@ export function initApp() {
 
     stageTitle.textContent =
       "1st Grade 一年级: Units → Lessons → Text/Reading/Rhythm/Laughs";
-    dropdownRow.style.gridTemplateColumns =
-      "repeat(3, minmax(0, 1fr))";
 
     unitSelect.value = "";
     lessonSelect.value = "";
@@ -844,12 +840,8 @@ export function initApp() {
     if (Number(unitId) === 4) {
       optionSelect.style.display = "none";
       optionSelect.disabled = true;
-      dropdownRow.style.gridTemplateColumns =
-        "repeat(2, minmax(0, 1fr))";
       return [];
     }
-    dropdownRow.style.gridTemplateColumns =
-      "repeat(3, minmax(0, 1fr))";
     optionSelect.style.display = "";
     optionSelect.disabled = false;
     optionSelect.innerHTML =
