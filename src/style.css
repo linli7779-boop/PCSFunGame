@@ -81,20 +81,8 @@ body {
   bottom: 0;
   height: 18vh;
   min-height: 90px;
-  background: linear-gradient(180deg, #61c15b 0%, #2f9e3a 100%);
-  border-top: 4px solid rgba(255, 255, 255, 0.6);
-}
-
-.grass::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    110deg,
-    rgba(255, 255, 255, 0.18) 0 8px,
-    transparent 8px 18px
-  );
-  opacity: 0.35;
+  background: linear-gradient(180deg, #b8d4a5 0%, #8cb376 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .app {
