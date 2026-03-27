@@ -82,8 +82,8 @@ function getCourseLesson(course, unitId, lessonId) {
 }
 
 function tokenizeSpeech(tokens) {
-  // No commas; just read the sentence naturally.
-  return tokens.join("");
+  // Use Chinese periods to force a significant pause (approx 1 second at reduced rate) between words
+  return tokens.join("。。。");
 }
 
 export function initApp() {
