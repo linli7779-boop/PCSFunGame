@@ -90,6 +90,19 @@ export function initApp() {
   const root = document.getElementById("root");
   root.innerHTML = "";
 
+  let speechUnlocked = false;
+  function unlockSpeech() {
+    if (speechUnlocked) return;
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+      speechUnlocked = true;
+    }
+    document.removeEventListener("touchstart", unlockSpeech);
+    document.removeEventListener("click", unlockSpeech);
+  }
+  document.addEventListener("touchstart", unlockSpeech, { once: true });
+  document.addEventListener("click", unlockSpeech, { once: true });
+
   const scene = document.createElement("div");
   scene.className = "scene";
   const clouds = document.createElement("div");
