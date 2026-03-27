@@ -548,7 +548,7 @@ export function initApp() {
         setDropdownsEnabled(true);
         showMessage("Great job! You earn a flower!");
         await addFlowerAward();
-        await animationDelay(900);
+        await animationDelay(5000);
         hideMessage();
         return;
       }
@@ -644,12 +644,15 @@ export function initApp() {
     let pointer = 0;
     let running = true;
 
-    function buildNextLine() {
+    async function buildNextLine() {
       if (!remaining.length) {
+        engine.setEntities([]);
         engine.stop();
         gameState.active = false;
         setDropdownsEnabled(true);
         showMessage("You finished this lesson. Welcome back later!");
+        await animationDelay(5000);
+        hideMessage();
         return;
       }
 
@@ -722,12 +725,15 @@ export function initApp() {
     let entities = [];
     let pointer = 0;
 
-    function buildNextLine() {
+    async function buildNextLine() {
       if (!remaining.length) {
+        engine.setEntities([]);
         engine.stop();
         gameState.active = false;
         setDropdownsEnabled(true);
         showMessage("You finished this lesson. Welcome back later!");
+        await animationDelay(5000);
+        hideMessage();
         return;
       }
 
