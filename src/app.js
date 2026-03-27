@@ -14,17 +14,33 @@ function shuffleInPlace(arr) {
   return arr;
 }
 
+window.speechSynthesisUtterances = [];
+
 function speak(text) {
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window))
     return;
-  window.speechSynthesis.cancel();
 
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "zh-CN";
-  u.rate = 0.525;
-  u.pitch = 1;
-  u.volume = 1;
-  window.speechSynthesis.speak(u);
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+  }
+
+  // Safari bug workaround: add small delay after canceling
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN";
+    u.rate = 0.525;
+    u.pitch = 1;
+    u.volume = 1;
+
+    // Prevent iOS Safari aggressive garbage collection
+    window.speechSynthesisUtterances.push(u);
+    if (window.speechSynthesisUtterances.length > 5) {
+      window.speechSynthesisUtterances.shift();
+    }
+
+    window.speechSynthesis.speak(u);
+    window.speechSynthesis.resume();
+  }, 30);
 }
 
 function createFlowerSvg() {
@@ -94,7 +110,9 @@ export function initApp() {
   function unlockSpeech() {
     if (speechUnlocked) return;
     if ("speechSynthesis" in window) {
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+      const u = new SpeechSynthesisUtterance(" ");
+      window.speechSynthesis.speak(u);
+      window.speechSynthesis.resume();
       speechUnlocked = true;
     }
     document.removeEventListener("touchstart", unlockSpeech);
