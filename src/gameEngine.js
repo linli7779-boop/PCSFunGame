@@ -58,6 +58,7 @@ export class FloatingTextEngine {
     this.running = false;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.rafId = null;
+    this._render();
   }
 
   _step(dt) {
@@ -123,7 +124,10 @@ export class FloatingTextEngine {
 
   _render() {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.w, this.h);
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.restore();
 
     for (const e of this.entities) {
       // Subtle shadow helps readability on mobile.

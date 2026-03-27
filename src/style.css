@@ -191,6 +191,11 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .selector-panel {

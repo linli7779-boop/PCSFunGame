@@ -421,8 +421,8 @@ export function initApp() {
     lessonValue.textContent = "-";
     renderAwardIcons();
     hideMessage();
-    engine.stop();
     engine.setEntities([]);
+    engine.stop();
     gameState.active = false;
     gameState.mode = null;
     gameState.onEntityClick = null;
@@ -440,7 +440,7 @@ export function initApp() {
   }
 
   function getFontSizeFromHeight(h) {
-    return clamp(Math.round(h / 10), 20, 60);
+    return clamp(Math.round((h / 10) * 0.75), 15, 45);
   }
 
   function measureEntity(text, fontSize) {
@@ -542,6 +542,7 @@ export function initApp() {
 
     async function nextWordsLine() {
       if (!remaining.length) {
+        engine.setEntities([]);
         engine.stop();
         gameState.active = false;
         setDropdownsEnabled(true);
@@ -677,6 +678,7 @@ export function initApp() {
 
         if (pointer === expectedTokens.length) {
           running = false;
+          engine.setEntities([]);
           engine.stop();
           score += 1000;
           scoreValue.textContent = String(score);
@@ -752,6 +754,7 @@ export function initApp() {
         pointer += 1;
 
         if (pointer === expectedTokens.length) {
+          engine.setEntities([]);
           engine.stop();
           score += 1000;
           scoreValue.textContent = String(score);
