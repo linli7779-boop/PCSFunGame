@@ -116,20 +116,63 @@ body {
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
-    gap: 14px;
-    padding: 14px;
+    gap: 10px;
+    padding: 10px;
   }
   .left, .center, .right {
     overflow-y: visible !important;
+    flex-shrink: 0;
   }
   .canvas-wrap {
-    min-height: 50vh !important;
+    min-height: 40vh !important;
   }
   .game-buttons {
     flex-direction: row;
   }
   .dropdown-row {
     flex-direction: column;
+    gap: 6px;
+  }
+  .left {
+    padding: 10px;
+    gap: 10px;
+  }
+  .btn {
+    padding: 10px 10px;
+    font-size: 16px;
+  }
+  select {
+    padding: 10px 10px;
+    font-size: 15px;
+  }
+  .stage-title {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .right {
+    padding: 10px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    gap: 8px;
+  }
+  .right .stat {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+  }
+  .right .subtle {
+    width: 100%;
+    text-align: center;
+    margin-top: 5px;
+    font-size: 12px;
+  }
+  .stat h3 {
+    font-size: 13px;
+  }
+  .stat .value {
+    font-size: 18px;
   }
 }
 

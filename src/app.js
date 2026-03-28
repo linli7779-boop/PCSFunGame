@@ -472,7 +472,9 @@ export function initApp() {
   }
 
   function getFontSizeFromHeight(h) {
-    return clamp(Math.round((h / 10) * 0.75), 15, 45);
+    const isMobilePortrait = window.matchMedia("(max-width: 900px) and (orientation: portrait)").matches;
+    const factor = isMobilePortrait ? 0.55 : 0.75;
+    return clamp(Math.round((h / 10) * factor), 15, 45);
   }
 
   function measureEntity(text, fontSize) {
