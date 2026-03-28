@@ -29,9 +29,15 @@ function speak(text) {
 
   // Explicitly assign a Chinese voice if the OS has one loaded
   const voices = window.speechSynthesis.getVoices();
-  const zhVoice = voices.find(v => v.lang === "zh-CN" || v.lang === "zh-HK" || v.lang === "zh-TW" || v.lang.includes("zh"));
-  if (zhVoice) {
-    u.voice = zhVoice;
+  if (voices && voices.length > 0) {
+    const zhVoice = voices.find(v => v.lang === "zh-CN" || v.lang === "zh-HK" || v.lang === "zh-TW" || v.lang.toLowerCase().includes("zh"));
+    if (zhVoice) {
+      u.voice = zhVoice;
+    } else {
+      // If the system has TTS voices but absolutely NONE are Chinese (e.g., Linux espeak English),
+      // we must abort. An English/Fallback voice will wildly mispronounce UTF-8 characters as "Type these letters" or garbage.
+      return;
+    }
   }
 
   // Prevent iOS Safari aggressive garbage collection
@@ -99,8 +105,9 @@ function getCourseLesson(course, unitId, lessonId) {
 }
 
 function tokenizeSpeech(tokens) {
-  // Use Chinese periods to force a significant pause (approx 1 second at reduced rate) between words
-  return tokens.join("。。。");
+  // Use Chinese comma and space to force a significant pause (approx 1 second at reduced rate) between words.
+  // We avoid '。。。' because some Linux/fallback screen readers literally read it as "Type these letters".
+  return tokens.join("， ");
 }
 
 export function initApp() {
