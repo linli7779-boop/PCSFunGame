@@ -20,27 +20,28 @@ function speak(text) {
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window))
     return;
 
-  if (window.speechSynthesis.speaking) {
-    window.speechSynthesis.cancel();
+  // Remove cancel entirely as it aggressively breaks iOS 15+ Safari
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "zh-CN";
+  u.rate = 0.525;
+  u.pitch = 1;
+  u.volume = 1;
+
+  // Explicitly assign a Chinese voice if the OS has one loaded
+  const voices = window.speechSynthesis.getVoices();
+  const zhVoice = voices.find(v => v.lang === "zh-CN" || v.lang === "zh-HK" || v.lang === "zh-TW" || v.lang.includes("zh"));
+  if (zhVoice) {
+    u.voice = zhVoice;
   }
 
-  // Safari bug workaround: add small delay after canceling
-  setTimeout(() => {
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "zh-CN";
-    u.rate = 0.525;
-    u.pitch = 1;
-    u.volume = 1;
+  // Prevent iOS Safari aggressive garbage collection
+  window.speechSynthesisUtterances.push(u);
+  if (window.speechSynthesisUtterances.length > 5) {
+    window.speechSynthesisUtterances.shift();
+  }
 
-    // Prevent iOS Safari aggressive garbage collection
-    window.speechSynthesisUtterances.push(u);
-    if (window.speechSynthesisUtterances.length > 5) {
-      window.speechSynthesisUtterances.shift();
-    }
-
-    window.speechSynthesis.speak(u);
-    window.speechSynthesis.resume();
-  }, 30);
+  window.speechSynthesis.speak(u);
+  window.speechSynthesis.resume();
 }
 
 function createFlowerSvg() {
