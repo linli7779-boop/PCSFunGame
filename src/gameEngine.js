@@ -158,8 +158,12 @@ export class FloatingTextEngine {
     const rect = this.canvas.getBoundingClientRect();
     const x = ev.clientX - rect.left;
     const y = ev.clientY - rect.top;
+    
+    // Add generous padding for fat-finger mobile/tablet taps
+    const pad = 25; 
+    
     for (const e of this.entities) {
-      if (x >= e.x && x <= e.x + e.w && y >= e.y && y <= e.y + e.h) {
+      if (x >= e.x - pad && x <= e.x + e.w + pad && y >= e.y - pad && y <= e.y + e.h + pad) {
         this.onEntityClicked?.(e);
         break;
       }
