@@ -496,7 +496,8 @@ export function initApp() {
     const entities = [];
     const maxTries = 2200;
     const padding = 6;
-    const speed = clamp(fontSize * 0.6, 15, 45);
+    // Speed reduced to 50% of original rate per user request
+    const speed = clamp(fontSize * 0.3, 7.5, 22.5);
     const color = "#0b2148";
 
     const cw = engine.w || canvasWrap.clientWidth;
