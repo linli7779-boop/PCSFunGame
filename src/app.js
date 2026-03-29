@@ -219,6 +219,40 @@ export function initApp() {
   messageEl.innerHTML = "<div></div>";
   canvasWrap.appendChild(messageEl);
 
+  let pendingStartAction = null;
+  const startGameBtn = document.createElement("button");
+  startGameBtn.className = "btn btn-accent start-game-btn";
+  startGameBtn.textContent = "Start Game 开始";
+  startGameBtn.style.position = "absolute";
+  startGameBtn.style.left = "50%";
+  startGameBtn.style.top = "50%";
+  startGameBtn.style.transform = "translate(-50%, -50%)";
+  startGameBtn.style.zIndex = "40";
+  startGameBtn.style.padding = "18px 36px";
+  startGameBtn.style.fontSize = "22px";
+  startGameBtn.style.display = "none";
+  startGameBtn.style.boxShadow = "var(--shadow)";
+  canvasWrap.appendChild(startGameBtn);
+
+  startGameBtn.addEventListener("click", () => {
+    startGameBtn.style.display = "none";
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
+      window.speechSynthesis.resume();
+    }
+    if (pendingStartAction) {
+      const action = pendingStartAction;
+      pendingStartAction = null;
+      action();
+    }
+  });
+
+  function showStartButton(action) {
+    hideMessage();
+    pendingStartAction = action;
+    startGameBtn.style.display = "block";
+  }
+
   const canvas = document.createElement("canvas");
   canvasWrap.appendChild(canvas);
   center.appendChild(canvasWrap);
@@ -454,6 +488,10 @@ export function initApp() {
   }
 
   function resetAll() {
+    if (typeof startGameBtn !== "undefined") {
+      startGameBtn.style.display = "none";
+      pendingStartAction = null;
+    }
     score = 0;
     awards = { flowers: 0, diamonds: 0 };
     scoreValue.textContent = "0";
@@ -972,6 +1010,10 @@ export function initApp() {
     lessonSelect.value = "";
     optionSelect.value = "";
     hideMessage();
+    if (typeof startGameBtn !== "undefined") {
+      startGameBtn.style.display = "none";
+      pendingStartAction = null;
+    }
 
     const isKindergarten = stageTitle.textContent.includes("Kindergarten");
     if (isKindergarten) {
@@ -1018,7 +1060,7 @@ export function initApp() {
       // Unit 4 has only rhythms and no third dropdown.
       if (!options.length) {
         setLessonField(lessonId);
-        startKindergartenRhythm(Number(unitId), Number(lessonId));
+        showStartButton(() => startKindergartenRhythm(Number(unitId), Number(lessonId)));
       } else {
         // Enable third dropdown only now.
         optionSelect.disabled = false;
@@ -1039,10 +1081,10 @@ export function initApp() {
     setLessonField(lessonId);
 
     if (isKindergarten) {
-      if (key === "words") startKindergartenWords(Number(unitId), Number(lessonId));
-      else startKindergartenRhythm(Number(unitId), Number(lessonId));
+      if (key === "words") showStartButton(() => startKindergartenWords(Number(unitId), Number(lessonId)));
+      else showStartButton(() => startKindergartenRhythm(Number(unitId), Number(lessonId)));
     } else {
-      startFirstGradeLesson(Number(unitId), Number(lessonId), key);
+      showStartButton(() => startFirstGradeLesson(Number(unitId), Number(lessonId), key));
     }
   });
 
