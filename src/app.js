@@ -118,16 +118,16 @@ export function initApp() {
   function unlockSpeech() {
     if (speechUnlocked) return;
     if ("speechSynthesis" in window) {
-      const u = new SpeechSynthesisUtterance(" ");
-      window.speechSynthesis.speak(u);
       window.speechSynthesis.resume();
       speechUnlocked = true;
     }
-    document.removeEventListener("touchstart", unlockSpeech);
-    document.removeEventListener("click", unlockSpeech);
+    ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(evt => {
+      document.removeEventListener(evt, unlockSpeech);
+    });
   }
-  document.addEventListener("touchstart", unlockSpeech, { once: true });
-  document.addEventListener("click", unlockSpeech, { once: true });
+  ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, unlockSpeech, { once: true });
+  });
 
   const scene = document.createElement("div");
   scene.className = "scene";
@@ -234,10 +234,12 @@ export function initApp() {
   startGameBtn.style.boxShadow = "var(--shadow)";
   canvasWrap.appendChild(startGameBtn);
 
-  startGameBtn.addEventListener("click", () => {
+  const onStartInteraction = (e) => {
+    if (e.type === "pointerup" || e.type === "touchend") {
+      e.preventDefault();
+    }
     startGameBtn.style.display = "none";
     if ("speechSynthesis" in window) {
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
       window.speechSynthesis.resume();
     }
     if (pendingStartAction) {
@@ -245,7 +247,11 @@ export function initApp() {
       pendingStartAction = null;
       action();
     }
-  });
+  };
+
+  startGameBtn.addEventListener("click", onStartInteraction);
+  startGameBtn.addEventListener("pointerup", onStartInteraction);
+  startGameBtn.addEventListener("touchend", onStartInteraction);
 
   function showStartButton(action) {
     hideMessage();
