@@ -14,21 +14,39 @@ function shuffleInPlace(arr) {
   return arr;
 }
 
+let globalVoices = [];
+if ("speechSynthesis" in window) {
+  const loadVoices = () => {
+    globalVoices = window.speechSynthesis.getVoices();
+  };
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
 window.speechSynthesisUtterances = [];
 
 function speak(text) {
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window))
     return;
 
-  // Remove cancel entirely as it aggressively breaks iOS 15+ Safari
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  if (!isIOS) {
+    // Android/Linux often require cancel() to clear stuck utterances in the queue.
+    // iOS 15+ aggressively breaks and halts if cancel is called mid-gesture, so we skip it.
+    window.speechSynthesis.cancel();
+  }
+
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "zh-CN";
   u.rate = 0.525;
   u.pitch = 1;
   u.volume = 1;
 
-  // Explicitly assign a Chinese voice if the OS has one loaded
-  const voices = window.speechSynthesis.getVoices();
+  // Use globally loaded voices to handle asynchronous loading on Android/Linux
+  let voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) voices = globalVoices;
+
   if (voices && voices.length > 0) {
     const zhVoice = voices.find(v => v.lang === "zh-CN" || v.lang === "zh-HK" || v.lang === "zh-TW" || v.lang.toLowerCase().includes("zh"));
     if (zhVoice) {
