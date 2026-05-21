@@ -32,35 +32,58 @@ function speak(text) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   if (!isIOS) {
-    // Android/Linux often require cancel() to clear stuck utterances in the queue.
-    // iOS 15+ aggressively breaks and halts if cancel is called mid-gesture, so we skip it.
     window.speechSynthesis.cancel();
   }
 
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "zh-CN";
-  u.rate = 0.525;
-  u.pitch = 1;
+  u.rate = 0.8; // Slightly faster for clarity, but still slow for learning
+  u.pitch = 1.3; // Higher pitch to sound more like a child
   u.volume = 1;
 
-  // Use globally loaded voices to handle asynchronous loading on Android/Linux
   let voices = window.speechSynthesis.getVoices();
   if (!voices || voices.length === 0) voices = globalVoices;
 
   if (voices && voices.length > 0) {
-    const zhVoice = voices.find(v => v.lang === "zh-CN" || v.lang === "zh-HK" || v.lang === "zh-TW" || v.lang.toLowerCase().includes("zh"));
-    if (zhVoice) {
-      u.voice = zhVoice;
+    // Priority 1: High-quality Mandarin voices (Xiaoxiao is the gold standard for children)
+    const preferredNames = ["Xiaoxiao", "Google 普通话", "Ting-Ting", "Zhiyu", "Huihui"];
+    let bestVoice = null;
+
+    for (const name of preferredNames) {
+      bestVoice = voices.find(v => v.lang.includes("zh-CN") && v.name.includes(name));
+      if (bestVoice) break;
+    }
+
+    // Priority 2: Any standard Mandarin (zh-CN) female voice (sounds more child-like with high pitch)
+    if (!bestVoice) {
+      bestVoice = voices.find(v => v.lang === "zh-CN" && (v.name.toLowerCase().includes("female") || v.name.includes("女")));
+    }
+
+    // Priority 3: Any standard Mandarin (zh-CN) voice
+    if (!bestVoice) {
+      bestVoice = voices.find(v => v.lang === "zh-CN");
+    }
+
+    // Priority 4: Fallback to any Chinese voice but NOT Cantonese if possible
+    if (!bestVoice) {
+      bestVoice = voices.find(v => v.lang.startsWith("zh") && !v.lang.includes("HK") && !v.lang.includes("yue"));
+    }
+
+    if (bestVoice) {
+      u.voice = bestVoice;
+      // If we found Xiaoxiao, she is already child-like, so we don't need extreme pitch
+      if (bestVoice.name.includes("Xiaoxiao")) {
+        u.pitch = 1.1;
+      }
     } else {
-      // If the system has TTS voices but absolutely NONE are Chinese (e.g., Linux espeak English),
-      // we must abort. An English/Fallback voice will wildly mispronounce UTF-8 characters as "Type these letters" or garbage.
+      // If no suitable Mandarin voice is found, we don't want to play Cantonese garbage
       return;
     }
   }
 
   // Prevent iOS Safari aggressive garbage collection
   window.speechSynthesisUtterances.push(u);
-  if (window.speechSynthesisUtterances.length > 5) {
+  if (window.speechSynthesisUtterances.length > 10) {
     window.speechSynthesisUtterances.shift();
   }
 
