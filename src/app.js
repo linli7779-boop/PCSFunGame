@@ -24,6 +24,7 @@ if ("speechSynthesis" in window) {
 }
 
 window.speechSynthesisUtterances = [];
+let speakTimeoutId = null;
 
 function speak(text) {
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window))
@@ -31,64 +32,105 @@ function speak(text) {
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
+  if (speakTimeoutId) {
+    clearTimeout(speakTimeoutId);
+    speakTimeoutId = null;
+  }
+
   if (!isIOS) {
     window.speechSynthesis.cancel();
+    // Sometimes cancel leaves Chromium's speech engine in a paused state, so we resume.
+    window.speechSynthesis.resume();
   }
 
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "zh-CN";
-  u.rate = 0.8; // Slightly faster for clarity, but still slow for learning
-  u.pitch = 1.3; // Higher pitch to sound more like a child
-  u.volume = 1;
+  const playSpeech = () => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN";
+    u.rate = 0.8; // Slightly faster for clarity, but still slow for learning
+    u.pitch = 1.3; // Higher pitch to sound more like a child
+    u.volume = 1;
 
-  let voices = window.speechSynthesis.getVoices();
-  if (!voices || voices.length === 0) voices = globalVoices;
+    let voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) voices = globalVoices;
 
-  if (voices && voices.length > 0) {
-    // Priority 1: High-quality Mandarin voices (Xiaoxiao is the gold standard for children)
-    const preferredNames = ["Xiaoxiao", "Google 普通话", "Ting-Ting", "Zhiyu", "Huihui"];
     let bestVoice = null;
+    if (voices && voices.length > 0) {
+      // Priority 1: High-quality Mandarin voices (Xiaoxiao is the gold standard for children)
+      const preferredNames = ["Xiaoxiao", "Google 普通话", "Ting-Ting", "Zhiyu", "Huihui"];
 
-    for (const name of preferredNames) {
-      bestVoice = voices.find(v => v.lang.includes("zh-CN") && v.name.includes(name));
-      if (bestVoice) break;
-    }
-
-    // Priority 2: Any standard Mandarin (zh-CN) female voice (sounds more child-like with high pitch)
-    if (!bestVoice) {
-      bestVoice = voices.find(v => v.lang === "zh-CN" && (v.name.toLowerCase().includes("female") || v.name.includes("女")));
-    }
-
-    // Priority 3: Any standard Mandarin (zh-CN) voice
-    if (!bestVoice) {
-      bestVoice = voices.find(v => v.lang === "zh-CN");
-    }
-
-    // Priority 4: Fallback to any Chinese voice but NOT Cantonese if possible
-    if (!bestVoice) {
-      bestVoice = voices.find(v => v.lang.startsWith("zh") && !v.lang.includes("HK") && !v.lang.includes("yue"));
-    }
-
-    if (bestVoice) {
-      u.voice = bestVoice;
-      // If we found Xiaoxiao, she is already child-like, so we don't need extreme pitch
-      if (bestVoice.name.includes("Xiaoxiao")) {
-        u.pitch = 1.1;
+      for (const name of preferredNames) {
+        bestVoice = voices.find(v => v.lang.includes("zh-CN") && v.name.includes(name));
+        if (bestVoice) break;
       }
-    } else {
-      // If no suitable Mandarin voice is found, we don't want to play Cantonese garbage
-      return;
+
+      // Priority 2: Any standard Mandarin (zh-CN) female voice (sounds more child-like with high pitch)
+      if (!bestVoice) {
+        bestVoice = voices.find(v => v.lang === "zh-CN" && (v.name.toLowerCase().includes("female") || v.name.includes("女")));
+      }
+
+      // Priority 3: Any standard Mandarin (zh-CN) voice
+      if (!bestVoice) {
+        bestVoice = voices.find(v => v.lang === "zh-CN");
+      }
+
+      // Priority 4: Fallback to any Chinese voice but NOT Cantonese if possible
+      if (!bestVoice) {
+        bestVoice = voices.find(v => v.lang.startsWith("zh") && !v.lang.includes("HK") && !v.lang.includes("yue"));
+      }
+
+      if (bestVoice) {
+        u.voice = bestVoice;
+        // If we found Xiaoxiao, she is already child-like, so we don't need extreme pitch
+        if (bestVoice.name.includes("Xiaoxiao")) {
+          u.pitch = 1.1;
+        }
+      } else {
+        // If no suitable Mandarin voice is found, we don't want to play Cantonese garbage
+        return;
+      }
     }
-  }
 
-  // Prevent iOS Safari aggressive garbage collection
-  window.speechSynthesisUtterances.push(u);
-  if (window.speechSynthesisUtterances.length > 10) {
-    window.speechSynthesisUtterances.shift();
-  }
+    // Edge/Chromium robustness: if the chosen online/natural voice fails (e.g. network drops),
+    // we fall back to a local/offline voice so the game doesn't go completely silent.
+    u.onerror = (event) => {
+      console.error("SpeechSynthesisUtterance error:", event);
+      if (bestVoice && bestVoice.localService === false && voices && voices.length > 0) {
+        const localFallback = voices.find(v => v.lang === "zh-CN" && v.localService === true);
+        if (localFallback && localFallback !== bestVoice) {
+          console.warn("Speech failed with online voice. Retrying with local offline fallback voice:", localFallback.name);
+          const fallbackU = new SpeechSynthesisUtterance(text);
+          fallbackU.lang = "zh-CN";
+          fallbackU.rate = 0.8;
+          fallbackU.pitch = 1.3;
+          fallbackU.voice = localFallback;
+          window.speechSynthesisUtterances.push(fallbackU);
+          if (window.speechSynthesisUtterances.length > 10) {
+            window.speechSynthesisUtterances.shift();
+          }
+          window.speechSynthesis.speak(fallbackU);
+        }
+      }
+    };
 
-  window.speechSynthesis.speak(u);
-  window.speechSynthesis.resume();
+    // Prevent iOS Safari aggressive garbage collection
+    window.speechSynthesisUtterances.push(u);
+    if (window.speechSynthesisUtterances.length > 10) {
+      window.speechSynthesisUtterances.shift();
+    }
+
+    window.speechSynthesis.speak(u);
+    window.speechSynthesis.resume();
+  };
+
+  if (!isIOS) {
+    // Add a 150ms delay on non-iOS browsers to avoid the speechSynthesis.cancel() Chromium race condition bug.
+    speakTimeoutId = setTimeout(() => {
+      speakTimeoutId = null;
+      playSpeech();
+    }, 150);
+  } else {
+    playSpeech();
+  }
 }
 
 function createFlowerSvg() {
